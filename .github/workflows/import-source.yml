@@ -1,0 +1,30 @@
+name: Import source snapshot
+on:
+  push:
+    paths:
+      - source-bundle.zip
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Extract reviewed source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f source-bundle.zip
+          unzip -q source-bundle.zip -d .
+          rm source-bundle.zip
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Import portfolio source tree"
+            git push
+          fi
