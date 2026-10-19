@@ -1,0 +1,13 @@
+name: Independent static analyzers
+workers: 2
+checkpoint_minutes: 5
+tasks:
+  - {key: elf, plugin: elf_analyzer, priority: 1, timeout: 600}
+  - {key: strings, plugin: strings, priority: 1, timeout: 600}
+  - {key: imports, plugin: imports, priority: 1, timeout: 600}
+  - {key: config, plugin: config, priority: 1, timeout: 600}
+  - {key: logs, plugin: logs, priority: 1, timeout: 600}
+  - {key: sqlite, plugin: sqlite, timeout: 600}
+  - {key: yaml, plugin: yaml, timeout: 600}
+  - {key: callgraph, plugin: callgraph, priority: 3, timeout: 600}
+  - {key: cfg, plugin: cfg, priority: 3, timeout: 600}

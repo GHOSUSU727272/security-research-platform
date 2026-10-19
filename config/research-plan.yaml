@@ -1,0 +1,11 @@
+name: Source inventory and review candidates
+workers: 2
+checkpoint_minutes: 5
+tasks:
+  - key: source
+    plugin: source
+    stage: static-analysis
+    priority: 1
+    depends_on: []
+    timeout: 120
+    attempts: 3

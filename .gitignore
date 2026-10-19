@@ -1,0 +1,24 @@
+# Runtime/private
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+state/
+*.db
+*.sqlite*
+*.log
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.rpk.zip
+reports/output/
+dist/
+build/
+kesl-snapshot/
+config/discovered/
+.DS_Store

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solar · CTF AutoSolver</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,Segoe UI,system-ui,sans-serif;background:#10131c;color:#e6e9f3}*{box-sizing:border-box}body{max-width:1320px;margin:0 auto;padding:32px}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}.brand{font-size:23px;font-weight:750;letter-spacing:-1px}.brand em{color:#ffae55;font-style:normal}.muted{color:#969fb4}small{font-size:12px}.hero{border:1px solid #333c50;background:linear-gradient(125deg,#242a3d,#171c2b);border-radius:20px;padding:30px;margin-bottom:24px}h1{font-size:35px;margin:0 0 12px}p{line-height:1.6}button,select,input{font:inherit;border-radius:9px;border:1px solid #414a60;padding:11px;background:#202637;color:#eef1fa}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}button.primary{background:#ffb25e;color:#21170b;border-color:#ffb25e;font-weight:750;padding:16px 24px}button:hover:not(:disabled){filter:brightness(1.12)}.controls{display:flex;gap:12px;align-items:end;flex-wrap:wrap}.controls label{display:flex;flex-direction:column;gap:7px;font-size:13px;color:#b5bfd2}.controls input[type=number]{width:110px}.checks{display:flex;gap:24px;flex-wrap:wrap;margin:22px 0}.checks input{accent-color:#ffb25e}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}.metric{border:1px solid #30394c;padding:22px;border-radius:13px;background:#181e2c}.metric strong{display:block;font-size:32px;margin-bottom:7px}.table{overflow:auto;border:1px solid #30394c;border-radius:13px}table{border-collapse:collapse;width:100%;background:#181e2c}th,td{text-align:left;padding:17px;border-bottom:1px solid #30394c;vertical-align:top}th{color:#9eabc3;font-size:12px;text-transform:uppercase;letter-spacing:1px}code{overflow-wrap:anywhere;color:#ffc480}td.flags{max-width:400px}.flag{padding-bottom:12px}.badge{border-radius:20px;padding:5px 10px;background:#303a50;display:inline-block;font-size:12px}.status{font-size:14px;color:#b1bdd3}#notice{padding:13px 0;white-space:pre-wrap}.error{color:#ff9292}details{margin-top:12px;font-size:13px}pre{white-space:pre-wrap;max-height:350px;overflow:auto}footer{margin-top:25px}.empty{padding:40px;color:#9eabc3;text-align:center}@media(max-width:800px){body{padding:16px}.metrics{grid-template-columns:repeat(2,1fr)}h1{font-size:27px}.hero{padding:20px}header{align-items:flex-start;gap:15px}}
+</style></head><body>
+<header><div class="brand"><em>SOLAR</em> / AutoSolver <small class="muted">Research Platform</small></div><div><button id="login">Войти в SolarCTF</button> <a href="/api/benchmark" target="_blank"><button>Benchmark</button></a> <a href="/api/report" download="ctf-report.json"><button>Экспорт JSON</button></a></div></header>
+<section class="hero"><span class="muted">АВТОНОМНОЕ ИССЛЕДОВАНИЕ CTF</span><h1>От задания к проверяемому результату</h1><p class="muted">Быстрые проверки сначала. Для каждого кандидата — источник и метод получения.</p>
+<div class="controls"><button class="primary" id="start">НАЧАТЬ АВТОМАТИЧЕСКОЕ РЕШЕНИЕ</button><button id="stop">Остановить</button><label>Режим<select id="mode"><option value="fast">Fast</option><option value="balanced" selected>Balanced</option><option value="deep">Deep</option></select></label><label>Секунд на задачу<input id="budget" type="number" min="5" max="600" value="180"></label><label>Параллельно<input id="workers" type="number" min="1" max="4" value="2"></label></div>
+<div class="checks"><label><input type="checkbox" id="solar" checked> Получать задания SolarCTF</label><label><input type="checkbox" id="submit"> Отправлять кандидаты SolarCTF автоматически</label></div>
+<div class="controls"><label><span><input type="checkbox" id="continuous"> Наблюдать до 24 часов</span></label><label>Проверять каждые, секунд<input type="number" id="interval" value="120" min="30" max="900"></label><label><span><input type="checkbox" id="include_local"> Обрабатывать локальные примеры</span></label></div>
+<p class="muted"><small>Длительный режим получает новые задания, переживает сбои подключения и возобновляется после перезапуска службы. «Остановить» отменяет продолжение. Изменения настроек применяются при следующем запуске.</small></p>
+<div id="platform" class="status">Проверка локального состояния…</div><div id="watch_status" class="status"></div><div id="health" class="status"></div><div id="notice" role="status"></div></section>
+<div class="metrics"><div class="metric"><strong id="discovered">0</strong><span class="muted">Заданий</span></div><div class="metric"><strong id="solved">0</strong><span class="muted">Подтверждено платформой</span></div><div class="metric"><strong id="candidates">0</strong><span class="muted">Кандидатов</span></div><div class="metric"><strong id="running">Готов</strong><span class="muted">Состояние</span></div></div>
+<div class="controls" style="margin-bottom:16px"><label>Показать<select id="filter"><option value="competition">Задания SolarCTF</option><option value="local">Локальные примеры</option><option value="all">Все результаты</option></select></label><span class="muted" id="shown"></span></div>
+<div class="table"><table><thead><tr><th>Задание / категория</th><th>Исследование</th><th>Результат и доказательства</th></tr></thead><tbody id="tasks"></tbody></table><div id="empty" class="empty">Заданий в этом списке пока нет. После старта соревнования нажмите «Начать» или включите длительный режим.</div></div>
+<footer class="muted"><small>Совпадение с форматом — кандидат. Подтверждённым флаг становится только после принятия платформой. Повторный запуск использует сохранённые завершённые проверки.</small></footer>
+<script>
+const $=id=>document.getElementById(id);const token='__CSRF__';
+async function action(path,data={}){try{const r=await fetch('/api/'+path,{method:'POST',headers:{'Content-Type':'application/json','X-Control-Token':token},body:JSON.stringify(data)});const result=await r.json();if(!r.ok)throw Error(r.status===403?'Сервис перезапущен. Обновите страницу.':result.error);$('notice').textContent=path==='login'?'Окно входа открывается на рабочем столе Kali. После авторизации сессия сохранится локально.':'';await refresh()}catch(e){$('notice').textContent=e.message;$('notice').className='error'}}
+$('start').onclick=()=>action('start',{mode:$('mode').value,budget:Number($('budget').value),workers:Number($('workers').value),solar:$('solar').checked,submit:$('submit').checked,continuous:$('continuous').checked,interval:Number($('interval').value),include_local:$('include_local').checked});$('stop').onclick=()=>action('stop');$('login').onclick=()=>action('login');
+function node(tag,text,cls){const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n}
+const names={queued:'В очереди',running:'Исследуется',candidates:'Нужна проверка',verified:'Флаг принят',unsolved:'Не решено',error:'Ошибка',interrupted:'Остановлено'};
+let lastState=null;const openDetails=new Set();
+function render(s){
+ const filter=$('filter').value;
+ const items=s.challenges.filter(i=>filter==='all'||(filter==='competition')===Number.isInteger(i.platform_id));
+ $('discovered').textContent=items.length;$('solved').textContent=items.filter(i=>i.status==='verified').length;
+ $('candidates').textContent=items.reduce((n,i)=>n+i.candidates.length,0);
+ const ctl=s.controller||{};
+ for(const id of ['mode','budget','workers','solar','submit','continuous','interval','include_local']){
+  const field=$(id);field.disabled=s.running;
+  if(s.running&&ctl.intent?.settings&&id in ctl.intent.settings){if(field.type==='checkbox')field.checked=Boolean(ctl.intent.settings[id]);else field.value=ctl.intent.settings[id]}
+ }
+ $('running').textContent=({waiting:'Ожидание',retrying:'Повтор связи',analyzing:'Работает'})[ctl.state]||'Готов';
+ $('start').disabled=s.running;$('stop').disabled=!s.running;
+ $('platform').textContent=s.platform?(s.platform.message||({'Playing':'Соревнование идёт','Not Started':'Ожидание старта соревнования','Finished':'Соревнование завершено'}[s.platform.status]||s.platform.status)):s.session_ready?'Сессия SolarCTF сохранена':'SolarCTF: требуется вход.';
+ $('watch_status').textContent=ctl.next_check?'Следующая проверка: '+new Date(ctl.next_check*1000).toLocaleTimeString()+' · Проход '+ctl.cycle+' · До '+new Date(ctl.intent.until*1000).toLocaleString():s.running?'Проход '+ctl.cycle:'';
+ $('health').textContent=(s.session_ready?'Сессия сохранена':'Нет сессии')+' · '+(s.llm_configured?'LLM настроена':'LLM не настроена — работают встроенные методы')+' · Автоотправка '+(s.running&&ctl.intent?.settings?.submit?'включена':'выключена');
+ if(s.error){$('notice').textContent=s.error;$('notice').dataset.serverError='true'}
+ else if($('notice').dataset.serverError){$('notice').textContent='';delete $('notice').dataset.serverError}
+ $('shown').textContent='Показано: '+items.length+' из '+s.challenges.length;
+ $('tasks').replaceChildren();$('empty').hidden=items.length>0;
+ const reasonNames={candidate_found:'Найден кандидат',strategies_exhausted:'Доступные методы исчерпаны',resource_limit_or_worker_failure:'Достигнут лимит ресурсов или ошибка инструмента',user_stop:'Остановлено',platform_already_solved:'Решено на платформе',service_restarted:'Прервано перезапуском'};
+ for(const item of items){
+  const row=document.createElement('tr');const first=document.createElement('td');
+  first.append(node('strong',item.name||item.id),node('p',item.category+' · '+(Number.isInteger(item.platform_id)?'SolarCTF':'Локальный пример'),'muted'));
+  const second=document.createElement('td');second.append(node('span',names[item.status]||item.status,'badge'),node('p',(item.phase||'')+' · '+item.elapsed.toFixed(1)+' с','muted'),node('small',reasonNames[item.reason]||item.reason||''));
+  for(const warning of item.warnings||[])second.append(node('p',warning.error,'error'));
+  const third=document.createElement('td');third.className='flags';
+  for(const c of item.candidates){const box=node('div','','flag');box.append(node('code',c.flag),node('p',c.source+' · '+c.method,'muted'));
+   const copy=node('button','Копировать');copy.onclick=async()=>{try{await navigator.clipboard.writeText(c.flag);copy.textContent='Скопировано'}catch{$('notice').textContent='Не удалось скопировать. Выделите флаг вручную.'}};
+   box.append(copy,node('small',c.verified?' Принят платформой':c.confidence==='heuristic'||c.confidence==='unverified_generated_solution'?' Гипотеза — нужна ручная проверка':' Кандидат; не подтверждён'));third.append(box)}
+  const detail=document.createElement('details');detail.open=openDetails.has(item.id);detail.addEventListener('toggle',()=>{if(detail.isConnected){if(detail.open)openDetails.add(item.id);else openDetails.delete(item.id)}});
+  detail.append(node('summary','История проверок'),node('pre',JSON.stringify(item.attempts,null,2)),node('small','Полные доказательства и вывод инструментов: «Экспорт JSON» вверху страницы.'));third.append(detail);row.append(first,second,third);$('tasks').append(row)
+ }
+}
+async function refresh(){try{const r=await fetch('/api/state');if(!r.ok)throw Error(r.status);lastState=await r.json();render(lastState)}catch(e){$('notice').textContent='Нет связи с локальным сервисом: '+e.message}}
+$('filter').onchange=()=>{if(lastState)render(lastState)};
+refresh();setInterval(refresh,2000);
+</script></body></html>

@@ -1,0 +1,14 @@
+root: ../tests/fixtures
+state: ../state
+workers: 2
+max_file_bytes: 16777216
+plugin_options:
+  elf_analyzer: {max_records: 100000}
+  imports: {max_records: 100000}
+  strings: {min_length: 4, max_records: 10000}
+  config: {redact_secrets: true}
+  yaml: {redact_secrets: true}
+  logs: {max_records: 10000}
+  sqlite: {instruction_budget: 1000000}
+  cfg: {max_instructions: 100000}
+  callgraph: {max_instructions: 100000}

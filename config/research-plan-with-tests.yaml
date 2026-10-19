@@ -1,0 +1,18 @@
+# Requires allow_dynamic: true and an explicit command in the runtime YAML.
+name: Source analysis followed by authorized local tests
+workers: 2
+checkpoint_minutes: 5
+tasks:
+  - key: inventory
+    plugin: source
+    stage: static-analysis
+    priority: 1
+    timeout: 120
+    attempts: 3
+  - key: controlled-tests
+    plugin: dynamic
+    stage: behavior-analysis
+    priority: 2
+    depends_on: [inventory]
+    timeout: 300
+    attempts: 1
